@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from app.models import db, Restaurant, MenuItem, Order, OrderItem
 from flask_login import login_required, current_user
 
+stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
 customer_bp = Blueprint('customer', __name__, template_folder='../templates/customer')
 
 @customer_bp.route('/')
@@ -47,13 +48,13 @@ def cart():
 
     return render_template('customer/cart.html', cart_items=cart_items, total_price=total_price)
 
-@customer_bp.route('/checkout', methods=['POST'])
+@customer_bp.route('/checkout', methods=['POST', 'GET'])
 @login_required
 def checkout():
-    """Checkout and place an order."""
+    """Finalize the order after successful payment."""
     if 'cart' not in session or not session['cart']:
         flash('Your cart is empty!', 'warning')
-        return redirect(url_for('customer.cart'))
+        return redirect(url_for('customer.restaurants'))
 
     # Create a new order
     total_price = 0
@@ -75,11 +76,11 @@ def checkout():
     session['cart'] = []
     session.modified = True
 
-    flash('Order placed successfully!', 'success')
-    return redirect(url_for('customer.restaurants'))
+    flash('Your order has been placed successfully!', 'success')
+    return render_template('customer/checkout_success.html')
 
 
-stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
+
 
 @customer_bp.route('/payment', methods=['GET', 'POST'])
 @login_required
@@ -112,3 +113,86 @@ def payment():
             return redirect(url_for('customer.payment'))
 
     return render_template('customer/payment.html', total_price=total_price)
+
+import paypalrestsdk
+
+# Configure PayPal SDK
+paypalrestsdk.configure({
+    "mode": current_app.config['PAYPAL_MODE'],  # "sandbox" or "live"
+    "client_id": current_app.config['PAYPAL_CLIENT_ID'],
+    "client_secret": current_app.config['PAYPAL_CLIENT_SECRET']
+})
+
+@customer_bp.route('/paypal_payment', methods=['GET', 'POST'])
+@login_required
+def paypal_payment():
+    """PayPal payment page."""
+    if 'cart' not in session or not session['cart']:
+        flash('Your cart is empty!', 'warning')
+        return redirect(url_for('customer.cart'))
+
+    # Calculate total price
+    total_price = 0
+    for item in session['cart']:
+        menu_item = MenuItem.query.get(item['menu_item_id'])
+        if menu_item:
+            total_price += menu_item.price * item['quantity']
+
+    # Create PayPal payment
+    payment = paypalrestsdk.Payment({
+        "intent": "sale",
+        "payer": {
+            "payment_method": "paypal"
+        },
+        "redirect_urls": {
+            "return_url": url_for('customer.paypal_success', _external=True),
+            "cancel_url": url_for('customer.cart', _external=True)
+        },
+        "transactions": [{
+            "item_list": {
+                "items": [
+                    {
+                        "name": "Food Order",
+                        "sku": "001",
+                        "price": str(total_price),
+                        "currency": "USD",
+                        "quantity": 1
+                    }
+                ]
+            },
+            "amount": {
+                "total": str(total_price),
+                "currency": "USD"
+            },
+            "description": "Payment for food order."
+        }]
+    })
+
+    if payment.create():
+        for link in payment.links:
+            if link.rel == "approval_url":
+                return redirect(link.href)
+    else:
+        flash(f"PayPal payment creation failed: {payment.error}", 'danger')
+        return redirect(url_for('customer.cart'))
+
+
+@customer_bp.route('/paypal_success', methods=['GET'])
+@login_required
+def paypal_success():
+    """PayPal payment success callback."""
+    payment_id = request.args.get('paymentId')
+    payer_id = request.args.get('PayerID')
+
+    if not payment_id or not payer_id:
+        flash("Payment was not successful.", "danger")
+        return redirect (url_for('customer.cart'))
+
+    payment = paypalrestsdk.Payment.find(payment_id)
+
+    if payment.execute({"payer_id": payer_id}):
+        flash("Payment completed successfully!", "success")
+        return redirect(url_for('customer.checkout'))
+    else:
+        flash(f"Payment execution failed: {payment.error}", "danger")
+        return redirect(url_for('customer.cart'))
