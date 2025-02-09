@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>{{ restaurant.name }} Menu</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Menu for {{ restaurant.name }}</h1>
+        <ul class="list-group">
+            {% for item in menu_items %}
+                <li class="list-group-item">
+                    {{ item.name }} - ${{ item.price }}
+                    <form method="POST" action="{{ url_for('customer.cart') }}" class="float-end">
+                        <input type="hidden" name="menu_item_id" value="{{ item.id }}">
+                        <input type="number" name="quantity" value="1" min="1" class="form-control d-inline-block" style="width: 80px;">
+                        <button type="submit" class="btn btn-success btn-sm">Add to Cart</button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+        <a href="{{ url_for('customer.restaurants') }}" class="btn btn-secondary mt-3">Back to Restaurants</a>
+    </div>
+</body>
+</html>

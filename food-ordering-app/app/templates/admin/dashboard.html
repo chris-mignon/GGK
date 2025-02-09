@@ -1,0 +1,31 @@
+!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Admin Dashboard</h1>
+        <a href="{{ url_for('admin.add_restaurant') }}" class="btn btn-primary mb-3">Add Restaurant</a>
+        <h2>Restaurants</h2>
+        <ul class="list-group mb-5">
+            {% for restaurant in restaurants %}
+                <li class="list-group-item">
+                    {{ restaurant.name }}
+                    <a href="{{ url_for('admin.manage_menu', restaurant_id=restaurant.id) }}" class="btn btn-secondary btn-sm float-end">Manage Menu</a>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <h2>Orders</h2>
+        <ul class="list-group">
+            {% for order in orders %}
+                <li class="list-group-item">
+                    Order #{{ order.id }} - Status: {{ order.status }} - Total: ${{ order.total_price }}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>

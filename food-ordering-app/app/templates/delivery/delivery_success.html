@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Delivery Success</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+</head>
+<body>
+    <div class="container mt-5 text-center">
+        <h1>Delivery Updated</h1>
+        <p>Order has been successfully marked as delivered.</p>
+        <a href="{{ url_for('delivery.deliveries') }}" class="btn btn-primary mt-3">Back to Pending Deliveries</a>
+    </div>
+</body>
+</html>

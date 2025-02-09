@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Add Restaurant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Add Restaurant</h1>
+        <form method="POST" action="{{ url_for('admin.add_restaurant') }}">
+            <div class="mb-3">
+                <label for="name" class="form-label">Restaurant Name</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control" id="description" name="description"></textarea>
+            </div>
+            <button type="submit" class="btn btn-success">Add Restaurant</button>
+        </form>
+    </div>
+</body>
+</html>

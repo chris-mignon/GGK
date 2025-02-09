@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Order Success</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+</head>
+<body>
+    <div class="container mt-5 text-center">
+        <h1>Thank you for your order!</h1>
+        <p>Your order has been placed successfully. We'll update you on the delivery status soon.</p>
+        <a href="{{ url_for('customer.restaurants') }}" class="btn btn-primary mt-3">Back to Restaurants</a>
+    </div>
+</body>
+</html>

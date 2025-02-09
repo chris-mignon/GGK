@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Restaurants</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Available Restaurants</h1>
+        <ul class="list-group">
+            {% for restaurant in restaurants %}
+                <li class="list-group-item">
+                    {{ restaurant.name }}
+                    <a href="{{ url_for('customer.view_menu', restaurant_id=restaurant.id) }}" class="btn btn-primary btn-sm float-end">View Menu</a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>
